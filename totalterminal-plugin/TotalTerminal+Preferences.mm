@@ -240,7 +240,7 @@
 
 -(NSInteger) numberOfItemsInComboBox:(NSComboBox*)aComboBox {
   LOG(@"numberOfItemsInComboBox %@", aComboBox);
-  return [[NSScreen screens] count];
+  return [[NSScreen screens] count] + 1;
 }
 
 -(id) comboBox:(NSComboBox*)aComboBox objectValueForItemAtIndex:(NSInteger)index {

@@ -62,12 +62,29 @@
 
 -(id) transformedValue:(id)value {
   LOG(@"transformedValue %@", value);
-  return [NSString stringWithFormat:@"Screen %d", (int)[value integerValue]];
+  NSString *screenString;
+  int screenCount = [[NSScreen screens] count];
+  int screenNumber = [value integerValue];
+  if (screenNumber == screenCount ) {
+    screenString = @"Current Screen";
+  }
+  else {
+    screenString = [NSString stringWithFormat:@"Screen %d", (int)[value integerValue]];
+  }
+  return screenString;
 }
 
 -(id) reverseTransformedValue:(id)value {
   LOG(@"reverseTransformedValue %@", value);
-  return [NSNumber numberWithInteger:[[value substringFromIndex:6] integerValue]];
+  int screenCount = [[NSScreen screens] count];
+  NSNumber *screenNumber;
+  if ([value isEqual: @"Current Screen"] ) {
+    screenNumber = [NSNumber numberWithInt:screenCount];
+  }
+  else {
+    screenNumber = [NSNumber numberWithInteger:[[value substringFromIndex:6] integerValue]];
+  }
+  return screenNumber;
 }
 
 @end
@@ -530,15 +547,30 @@
 
 -(NSScreen*) screen {
   int screenIndex = [[NSUserDefaults standardUserDefaults] integerForKey:@"TotalTerminalVisorScreen"];
-  NSArray* screens = [NSScreen screens];
+  int screenCount = [[NSScreen screens] count];
+  
+  if (screenIndex < screenCount) {
+    NSArray* screens = [NSScreen screens];
+    
+    if (screenIndex >= [screens count]) {
+      screenIndex = 0;
+    }
+    if ([screens count] <= 0) {
+      return nil;     // safety net
+    }
+    return [screens objectAtIndex:screenIndex];
+  }
+  else {
+    return [self getCurrentScreen];
+  }
+}
 
-  if (screenIndex >= [screens count]) {
-    screenIndex = 0;
-  }
-  if ([screens count] <= 0) {
-    return nil;     // safety net
-  }
-  return [screens objectAtIndex:screenIndex];
+-(NSScreen*) getCurrentScreen {
+  NSPoint mouseLoc = [NSEvent mouseLocation];
+  NSEnumerator *screenEnum = [[NSScreen screens] objectEnumerator];
+  NSScreen *currentScreen;
+  while ((currentScreen = [screenEnum nextObject]) && !NSMouseInRect(mouseLoc, [currentScreen frame], NO));
+  return currentScreen;
 }
 
 -(NSRect) menubarFrame:(NSScreen*)screen {
